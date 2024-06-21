@@ -8,5 +8,12 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^20.14.7",
+    "@types/socket.io": "^3.0.2",
+    "socket.io": "^4.7.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.2"
+  }
 }
