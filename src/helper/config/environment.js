@@ -1,7 +1,7 @@
 
 require('dotenv').config({ path: process.env.NODE_ENV ? `.env.${process.env.NODE_ENV}` : `.env.development` });
 
-export default class Environment {
+class Environment {
     static PORT = process.env.PORT;
     static APP_NAME = process.env.APP_NAME;
     static ENVIRONMENT = process.env.NODE_ENV;
@@ -13,3 +13,5 @@ export default class Environment {
     static RATE_LIMIT_MINUTES_PER_WINDOWS = process.env.RATE_LIMIT_MINUTES_PER_WINDOWS || 15;
     static RATE_LIMIT_REQUESTS = process.env.RATE_LIMIT_REQUESTS || 100;
 }
+
+module.exports = Environment;

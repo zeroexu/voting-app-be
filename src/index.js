@@ -2,11 +2,11 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const jwt = require('jsonwebtoken');
-const { default: Environment } = require('./helper/config/environment');
-const config = require('./src/server/config');
+const config = require('./helper/config/server');
 const app = config(express());
 const server = http.createServer(app);
 const io = socketIo(server);
+const Environment = require('./helper/config/environment');
 
 const rooms = {};
 

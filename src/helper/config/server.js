@@ -1,7 +1,7 @@
 
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
-const { default: Environment } = require('./environment');
+const Environment = require('./environment');
 
 module.exports = app => {
     // RATE LIMIT
