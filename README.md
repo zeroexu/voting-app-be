@@ -35,51 +35,57 @@ El servidor estará escuchando en el puerto 3000.
 
 ## API de Socket.IO
 ### Eventos
-- create_room: Crea una nueva sala. El usuario que crea la sala se convierte en el administrador.
-Parámetros: { roomId: string }
-Respuesta: { roomId: string, admin: boolean }
+*create_room:* Crea una nueva sala. El usuario que crea la sala se convierte en el administrador.
+- Parámetros: { roomId: string, maxParticipants: number, name: string }
+- Respuesta: { roomId: string, admin: boolean, token: string }
+*join_room:* Permite a un usuario unirse a una sala existente.
 
-- join_room: Permite a un usuario unirse a una sala existente.
-Parámetros: { roomId: string }
-Respuesta: { roomId: string, admin: boolean }
+- Parámetros: { roomId: string, name: string }
+- Respuesta: { roomId: string, admin: boolean, token: string }
+*vote:* Emite un voto en una sala.
 
-- vote: Emite un voto en una sala.
-Parámetros: { roomId: string, vote: number }
-Respuesta: { votes: object, avgVote: number }
+- Parámetros: { roomId: string, vote: number }
+- Respuesta: { votes: object, avgVote: number }
+*reset_votes:* Resetea los votos en una sala. Solo el administrador puede realizar esta acción.
 
-- reset_votes: Resetea los votos en una sala. Solo el administrador puede realizar esta acción.
-Parámetros: { roomId: string }
-Respuesta: void
+- Parámetros: { roomId: string }
+- Respuesta: void
+*kick_user:* Expulsa a un usuario de una sala. Solo el administrador puede realizar esta acción.
 
-- kick_user: Expulsa a un usuario de una sala. Solo el administrador puede realizar esta acción.
-Parámetros: { roomId: string, userId: string }
-Respuesta: void
+- Parámetros: { roomId: string, userId: string }
+- Respuesta: void
+*close_room:* Cierra una sala. Solo el administrador puede realizar esta acción.
 
-- close_room: Cierra una sala. Solo el administrador puede realizar esta acción.
-Parámetros: { roomId: string }
-Respuesta: void
+- Parámetros: { roomId: string }
+- Respuesta: void
+### Manejo de Eventos
+*room_created:* Se emite cuando una sala es creada.
 
-## Manejo de Eventos
-- room_created: Se emite cuando una sala es creada.
-Parámetros: { roomId: string, admin: boolean }
-
+- Parámetros: { roomId: string, admin: boolean, token: string }
 - room_joined: Se emite cuando un usuario se une a una sala.
-Parámetros: { roomId: string, admin: boolean }
 
+*Parámetros:* { roomId: string, admin: boolean, token: string }
 - vote_update: Se emite cuando hay una actualización en los votos.
-Parámetros: { votes: object, avgVote: number }
 
-- votes_reset: Se emite cuando los votos son reseteados.
-Parámetros: void
+- Parámetros: { votes: object, avgVote: number }
+*votes_reset:* Se emite cuando los votos son reseteados.
 
-- kicked: Se emite cuando un usuario es expulsado de una sala.
-Parámetros: void
+- Parámetros: void
+*kicked:* Se emite cuando un usuario es expulsado de una sala.
 
-- room_closed: Se emite cuando una sala es cerrada.
-Parámetros: void
+- Parámetros: void
+*room_closed:* Se emite cuando una sala es cerrada.
 
-- error: Se emite cuando ocurre un error.
-Parámetros: string
+- Parámetros: void
+*user_joined:* Se emite cuando un nuevo usuario se une a una sala.
+
+- Parámetros: { userId: string, name: string, token: string }
+*user_left:* Se emite cuando un usuario deja una sala.
+
+- Parámetros: { userId: string }
+*error:* Se emite cuando ocurre un error.
+
+- Parámetros: string
 
 ## Funcionalidades
 - Crear Sala: El primer usuario que crea la sala se convierte en el administrador.
