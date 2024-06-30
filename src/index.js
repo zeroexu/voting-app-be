@@ -10,9 +10,8 @@ const Environment = require('./helper/config/environment');
 
 const rooms = {};
 
-
 io.use((socket, next) => {
-    const eventName = socket.eventName; 
+    const eventName = socket.eventName;
     if (eventName === 'create_room' || eventName === 'join_room') {
         return next();
     }
@@ -94,7 +93,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('reset_votes', (roomId) => {
+    socket.on('reset_votes', ({ roomId }) => { 
         if (rooms[roomId] && rooms[roomId].admin === socket.id) {
             rooms[roomId].votes = {};
             for (const participant in rooms[roomId].participants) {
@@ -124,8 +123,7 @@ io.on('connection', (socket) => {
         }
     });
 
-
-    socket.on('close_room', (roomId) => {
+    socket.on('close_room', ({ roomId }) => { 
         if (rooms[roomId] && rooms[roomId].admin === socket.id) {
             io.to(roomId).emit('room_closed');
             for (const userId in rooms[roomId].participants) {
@@ -156,7 +154,6 @@ io.on('connection', (socket) => {
             // Eliminar el cuarto
             delete rooms[roomId];
         }
-
     });
 
     /* socket.on('disconnect', () => {
@@ -191,7 +188,6 @@ io.on('connection', (socket) => {
         }
     }, 60 * 1000); // check every minute
 });
-
 
 server.listen(Environment.PORT, () => {
     console.log(`'Listening on port ${Environment.PORT}`);
