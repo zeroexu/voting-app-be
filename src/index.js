@@ -138,7 +138,28 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('disconnect', () => {
+    socket.on('exit_room', ({ roomId, userId }) => {
+        if (!rooms[roomId]) {
+            socket.emit('error', 'The room does not exist');
+            return;
+        }
+        const room = rooms[roomId];
+        const isAdmin = room.admin === userId;
+
+        io.sockets.sockets.get(userId)?.leave(roomId);
+        if (isAdmin) {
+            // Usar Socket.IO para notificar a todos los usuarios en el cuarto
+            io.to(roomId).emit('room_closed', 'El cuarto ha sido cerrado por el admin');
+            for (const userId in room.participants) {
+                io.sockets.sockets.get(userId).leave(roomId);
+            }
+            // Eliminar el cuarto
+            delete rooms[roomId];
+        }
+
+    });
+
+    /* socket.on('disconnect', () => {
         for (const roomId in rooms) {
             const room = rooms[roomId];
             if (room.participants[socket.id]) {
@@ -156,7 +177,7 @@ io.on('connection', (socket) => {
                 }
             }
         }
-    });
+    }); */
 
     setInterval(() => {
         const now = Date.now();
