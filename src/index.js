@@ -46,14 +46,15 @@ io.on('connection', (socket) => {
             };
             rooms[roomId].participants[socket.id] = { name: 'Admin', vote: null };
             socket.join(roomId);
-            socket.emit('room_created', { roomId, admin: true, token });
+            socket.emit('room_created', { roomId, adminId: rooms[roomId].admin, token });
             console.log(`Room ${roomId} created with admin ${socket.id}`);
         } else {
             socket.emit('error', 'Room already exists');
         }
     });
 
-    socket.on('join_room', ({ roomId, name }) => {
+    socket.on('join_room', ({ name }) => {
+        roomId = rooms.filter(room => room.name === name)[0].id;
         if (rooms[roomId]) {
             const room = rooms[roomId];
             const participantPayload = { name, roomId };
@@ -61,7 +62,7 @@ io.on('connection', (socket) => {
             if (Object.keys(room.participants).length < room.maxParticipants) {
                 room.participants[socket.id] = { name: name, vote: null };
                 socket.join(roomId);
-                socket.emit('room_joined', { roomId, admin: false });
+                socket.emit('room_joined', { roomId, adminId: rooms[roomId].admin });
                 io.to(roomId).emit('user_joined', { userId: socket.id, name: name, token });
                 console.log(`${name} joined room ${roomId}`);
             } else {
@@ -83,7 +84,7 @@ io.on('connection', (socket) => {
                 const votesArray = Object.values(room.votes);
                 const avgVote = votesArray.reduce((a, b) => a + b, 0) / votesArray.length;
 
-                io.to(roomId).emit('vote_update', { votes: room.votes, avgVote });
+                io.to(roomId).emit('vote_update', { votes: room.votes, averageVote: avgVote});
                 console.log(`Vote recorded in room ${roomId}: ${vote}`);
             } else {
                 socket.emit('error', 'Invalid vote');
@@ -96,9 +97,9 @@ io.on('connection', (socket) => {
     socket.on('reset_votes', ({ roomId }) => { 
         if (rooms[roomId] && rooms[roomId].admin === socket.id) {
             rooms[roomId].votes = {};
-            for (const participant in rooms[roomId].participants) {
+            rooms[roomId].participants.forEach(participant => {
                 rooms[roomId].participants[participant].vote = null;
-            }
+            });
             rooms[roomId].lastActivity = Date.now();
             io.to(roomId).emit('votes_reset');
             console.log(`Votes reset in room ${roomId}`);
@@ -126,9 +127,9 @@ io.on('connection', (socket) => {
     socket.on('close_room', ({ roomId }) => { 
         if (rooms[roomId] && rooms[roomId].admin === socket.id) {
             io.to(roomId).emit('room_closed');
-            for (const userId in rooms[roomId].participants) {
-                io.sockets.sockets.get(userId).leave(roomId);
-            }
+            rooms[roomId].participants.forEach(participant => {
+                io.sockets.sockets.get(participant.id)?.leave(roomId);
+            });
             delete rooms[roomId];
             console.log(`Room ${roomId} closed by admin`);
         } else {
@@ -136,45 +137,24 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('exit_room', ({ roomId, userId }) => {
+    socket.on('exit_room', ({ roomId }) => {
+        const userId = socket.id;
         if (!rooms[roomId]) {
             socket.emit('error', 'The room does not exist');
             return;
         }
         const room = rooms[roomId];
         const isAdmin = room.admin === userId;
-
+        room.participants = room.participants.filter(participant => participant.id !== userId);
         io.sockets.sockets.get(userId)?.leave(roomId);
         if (isAdmin) {
-            // Usar Socket.IO para notificar a todos los usuarios en el cuarto
             io.to(roomId).emit('room_closed', 'El cuarto ha sido cerrado por el admin');
-            for (const userId in room.participants) {
-                io.sockets.sockets.get(userId).leave(roomId);
-            }
-            // Eliminar el cuarto
+            room.participants.forEach(participant => {
+                io.sockets.sockets.get(participant.id)?.leave(roomId);
+            });
             delete rooms[roomId];
         }
     });
-
-    /* socket.on('disconnect', () => {
-        for (const roomId in rooms) {
-            const room = rooms[roomId];
-            if (room.participants[socket.id]) {
-                delete room.participants[socket.id];
-                delete room.votes[socket.id];
-                io.to(roomId).emit('user_left', { userId: socket.id });
-                console.log(`User ${socket.id} left room ${roomId}`);
-                if (socket.id === room.admin) {
-                    io.to(roomId).emit('error', 'Room closed due to admin leaving');
-                    for (const userId in room.participants) {
-                        io.sockets.sockets.get(userId).leave(roomId);
-                    }
-                    delete rooms[roomId];
-                    console.log(`Room ${roomId} closed because admin left`);
-                }
-            }
-        }
-    }); */
 
     setInterval(() => {
         const now = Date.now();
